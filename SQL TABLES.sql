@@ -1,0 +1,158 @@
+CREATE TABLE Admin (
+    Admin_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100),
+    Password VARCHAR(100),
+    Email VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE User (
+    User_ID INT  AUTO_INCREMENT PRIMARY KEY,
+    UserName VARCHAR(50) NOT NULL,
+    UserEmail VARCHAR(100) NOT NULL UNIQUE,
+    Password VARCHAR(100) NOT NULL,
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Tool (
+    Tool_ID INT AUTO_INCREMENT PRIMARY KEY,
+    ToolName VARCHAR(100),
+    ToolType VARCHAR(50),
+    Admin_ID INT NOT NULL,
+    FOREIGN KEY (Admin_ID) REFERENCES Admin(Admin_ID)
+		ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE Investor (
+    Investor_ID INT AUTO_INCREMENT PRIMARY KEY,
+    PortfolioValue DECIMAL(18, 2),
+    InvestorStrategy VARCHAR(100),
+    User_ID INT NOT NULL UNIQUE,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE Trader (
+    Trader_ID INT AUTO_INCREMENT PRIMARY KEY,
+    TraderFrequency VARCHAR(50),
+    RiskLevel VARCHAR(20),
+    User_ID INT NOT NULL UNIQUE,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+	CHECK(TraderFrequency IN ('Daily', 'Weekly', 'Monthly')),
+    CHECK(RiskLevel IN ('Low', 'Medium', 'High'))
+);
+
+CREATE TABLE Portfolio (
+    Portfolio_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Total_Loss DECIMAL(18, 2),
+    Total_Profit DECIMAL(18, 2),
+    PortfolioName VARCHAR(50),
+    User_ID INT NOT NULL UNIQUE,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE Stock (
+    Stock_ID INT AUTO_INCREMENT PRIMARY KEY,
+    StockName VARCHAR(100) NOT NULL UNIQUE,
+    MarketCap DECIMAL(20, 2) NOT NULL,
+    Sector VARCHAR(50) NOT NULL,
+    TickerSymbol VARCHAR(10) NOT NULL UNIQUE,
+    Portfolio_ID INT,
+    FOREIGN KEY (Portfolio_ID) REFERENCES Portfolio(Portfolio_ID)
+        ON DELETE SET NULL
+        ON UPDATE SET NULL
+);
+
+CREATE TABLE Transaction (
+    Trans_ID INT AUTO_INCREMENT PRIMARY KEY,
+    TransType VARCHAR(20) NOT NULL,
+    TransDate DATE NOT NULL,
+    TransPrice DECIMAL(18, 2) NOT NULL,
+    Quantity INT NOT NULL,
+    Stock_ID INT NOT NULL,
+    User_ID INT NOT NULL,
+    FOREIGN KEY (Stock_ID) REFERENCES Stock(Stock_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+	CHECK(TransType IN ('Buy','Sell'))
+);
+
+CREATE TABLE Stock_Historic_Data (
+    Data_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Stock_ID INT NOT NULL,
+    OpenPrice DECIMAL(18, 2) NOT NULL,
+    ClosePrice DECIMAL(18, 2) NOT NULL,
+    HighPrice DECIMAL(18, 2) NOT NULL,
+    LowPrice DECIMAL(18, 2) NOT NULL,
+    Date DATE NOT NULL,
+    Volume_Traded BIGINT NOT NULL,
+    FOREIGN KEY (Stock_ID) REFERENCES Stock(Stock_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE Dividend_History (
+    Dividend_ID INT AUTO_INCREMENT PRIMARY KEY,
+    DividendAmount DECIMAL(10, 2) NOT NULL,
+    DatePaid DATE NOT NULL,
+    Stock_ID INT NOT NULL,
+    Portfolio_ID INT,
+    FOREIGN KEY (Stock_ID) REFERENCES Stock(Stock_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (Portfolio_ID) REFERENCES Portfolio(Portfolio_ID)
+        ON DELETE SET NULL
+        ON UPDATE SET NULL
+);
+
+CREATE TABLE Stock_Recommendation (
+    Recom_ID INT AUTO_INCREMENT PRIMARY KEY,
+    User_ID INT NOT NULL,
+    Stock_ID INT NOT NULL,
+    Date_Recom DATE NOT NULL,
+    Tool_ID INT,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (Stock_ID) REFERENCES Stock(Stock_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+	FOREIGN KEY (Tool_ID) REFERENCES Tool(Tool_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE Watchlist (
+    Watch_ID INT AUTO_INCREMENT PRIMARY KEY,
+    User_ID INT NOT NULL,
+    Stock_ID INT NOT NULL UNIQUE,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+	FOREIGN KEY (Stock_ID) REFERENCES Stock(Stock_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE Profit_Loss (
+    PL_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Profit DECIMAL(18, 2),
+    Loss DECIMAL(18, 2),
+    Date_Reported DATE NOT NULL,
+    User_ID INT NOT NULL,
+    stock_id INT NOT NULL,
+    FOREIGN KEY (stock_id) REFERENCES Stock(stock_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (User_ID) REFERENCES User(User_ID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
